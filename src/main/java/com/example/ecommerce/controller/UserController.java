@@ -1,10 +1,15 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.UserDto;
+import com.example.ecommerce.dto.UserRegistrationDto;
+import com.example.ecommerce.dto.UserUpdateDto;
 import com.example.ecommerce.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -14,8 +19,14 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
-        return ResponseEntity.ok(userService.createUser(userDto));
+    public ResponseEntity<UserDto> createUser(@RequestBody UserRegistrationDto userDto) {
+        UserDto createdUser = userService.createUser(userDto);
+        URI location = ServletUriComponentsBuilder
+            .fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdUser.getId())
+            .toUri();
+        return ResponseEntity.created(location).body(createdUser);
     }
 
     @GetMapping("/{id}")
@@ -28,8 +39,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserUpdateDto userDto) {
         return ResponseEntity.ok(userService.updateUser(id, userDto));
     }
 
@@ -39,4 +50,3 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 }
-

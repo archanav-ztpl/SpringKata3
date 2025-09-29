@@ -1,11 +1,17 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.UserDto;
+import com.example.ecommerce.dto.UserRegistrationDto;
+import com.example.ecommerce.dto.UserUpdateDto;
 import com.example.ecommerce.entity.User;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,18 +19,28 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDto createUser(UserDto userDto) {
+    @Transactional
+    public UserDto createUser(UserRegistrationDto userDto) {
         User user = User.builder()
                 .username(userDto.getUsername())
+                .password(passwordEncoder.encode(userDto.getPassword()))
                 .email(userDto.getEmail())
                 .roles(userDto.getRoles())
                 .build();
-        user.setPassword("encrypted-password"); // Placeholder for password encryption
+
         User saved = userRepository.save(user);
-        userDto.setId(saved.getId());
-        return userDto;
+
+        UserDto userDtoResponse = UserDto.builder()
+                .id(saved.getId())
+                .username(saved.getUsername())
+                .email(saved.getEmail())
+                .roles(saved.getRoles())
+                .build();
+
+        return userDtoResponse;
     }
 
     @Override
@@ -52,21 +68,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(Long id, UserDto userDto) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setUsername(userDto.getUsername());
-                    user.setEmail(userDto.getEmail());
-                    user.setRoles(userDto.getRoles());
-                    User updated = userRepository.save(user);
-                    userDto.setId(updated.getId());
-                    return userDto;
-                }).orElse(null);
+    public UserDto updateUser(Long id, UserUpdateDto userUpdateDto) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new com.example.ecommerce.exception.EntityNotFoundException("User not found with id: " + id));
+        if (userUpdateDto.getUsername() != null) {
+            user.setUsername(userUpdateDto.getUsername());
+        }
+        if (userUpdateDto.getEmail() != null) {
+            user.setEmail(userUpdateDto.getEmail());
+        }
+        if (userUpdateDto.getRoles() != null && !userUpdateDto.getRoles().isEmpty()) {
+            user.setRoles(userUpdateDto.getRoles());
+        }
+        User updated = userRepository.save(user);
+        return UserDto.builder()
+                .id(updated.getId())
+                .username(updated.getUsername())
+                .email(updated.getEmail())
+                .roles(updated.getRoles())
+                .build();
     }
 
     @Override
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new com.example.ecommerce.exception.EntityNotFoundException("User not found with id: " + id));
+        userRepository.deleteById(user.getId());
     }
 }
-
