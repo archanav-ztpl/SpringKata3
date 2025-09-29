@@ -1,5 +1,6 @@
 package com.example.ecommerce.dto;
 
+import com.example.ecommerce.entity.UserRole;
 import lombok.*;
 import java.util.Set;
 
@@ -11,5 +12,5 @@ public class UserDto {
     private Long id;
     private String username;
     private String email;
-    private Set<String> roles;
+    private Set<UserRole> roles;
 }

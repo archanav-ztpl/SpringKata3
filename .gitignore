@@ -1,0 +1,41 @@
+# Maven build output
+/target/
+
+# IDE files
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+
+# Miscellaneous
+.classpath
+.project
+.settings/
+
+# IntelliJ
+out/
+
+# VS Code
+.vscode/
+
+# Test reports
+/test-output/
+
+# Node/npm (if any frontend)
+node_modules/
+
+# Ignore local database files
+*.h2.db
+*.mv.db
+
+# Ignore generated files
+/generated/
+
